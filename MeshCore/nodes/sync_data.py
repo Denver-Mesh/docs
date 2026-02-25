@@ -1,9 +1,9 @@
 import argparse
 import enum
 import json
-import requests
 import objectrest
 import os
+import requests
 import time
 from abc import abstractmethod, ABC
 from pydantic import BaseModel
@@ -23,6 +23,7 @@ class NodeType(enum.Enum):
     REPEATER = 1
     ROOM_SERVER = 2
     COMPANION = 3
+    ROOM_OR_REPEATER = 4  # Used when we can't be sure if it's a room server or repeater, but we know it's one of those two
 
     @classmethod
     def from_int(cls, role: int) -> 'NodeType':
@@ -32,6 +33,8 @@ class NodeType(enum.Enum):
             return cls.ROOM_SERVER
         elif role == 3:
             return cls.COMPANION
+        elif role == 4:
+            return cls.ROOM_OR_REPEATER
         else:
             raise ValueError(f"Unknown device role: {role}")
 
@@ -200,18 +203,6 @@ def _get_letsmesh_nodes() -> list[LetsMeshNode]:
     :return: A list of LetsMeshNode objects representing the nodes in the Denver region.
     :rtype: list[LetsMeshNode]
     """
-    res = requests.get(url=LETSMESH_NODES_URL,
-                       headers={
-                           "Host": "api.letsmesh.net",
-                           "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:147.0) Gecko/20100101 Firefox/147.0",
-                           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                           "Accept-Language": "en-US,en;q=0.9",
-                           "Accept-Encoding": "gzip, deflate, br, zstd",
-                           "Connection": "keep-alive",
-                       }, timeout=10)
-    print(res)
-    print(res.text)
-
     return objectrest.get_object(url=LETSMESH_NODES_URL,  # type: ignore
                                  model=LetsMeshNode,
                                  extract_list=True,
@@ -299,7 +290,6 @@ def get_den_repeaters() -> list[Node]:
     :rtype: list[Node]
     """
     meshmapper_repeaters: list[MeshMapperRepeater] = _get_meshmapper_repeaters()
-    letsmesh_nodes: list[LetsMeshNode] = _get_letsmesh_nodes()
 
     return [
         Node(
@@ -307,10 +297,7 @@ def get_den_repeaters() -> list[Node]:
             name=repeater.name,
             latitude=repeater.lat,
             longitude=repeater.lon,
-            # This may take time, that's why this doesn't run often
-            node_type=(NodeType.ROOM_SERVER
-                       if (_meshmapper_node_is_room(node=repeater, letsmesh_nodes=letsmesh_nodes) and letsmesh_nodes)
-                       else NodeType.REPEATER),
+            node_type=NodeType.ROOM_OR_REPEATER,
             is_observer=False,  # Unknown
             contact=_build_contact_url(name=repeater.name, public_key=repeater.hex_id),
             created_at=int(repeater.created_at) if repeater.created_at.isdigit() else 0,
@@ -479,14 +466,15 @@ def sync_companions(storage_file_path: str) -> None:
         print("No changes detected, cache not updated.")
 
 
-def main(repeater_data_file: str, companion_data_file: str) -> None:
+def main(repeater_data_file: str) -> None:
     print("Starting LetsMesh sync...")
 
     print("Syncing repeaters...")
     sync_repeaters(storage_file_path=repeater_data_file)
 
-    print("Syncing companions...")
-    sync_companions(storage_file_path=companion_data_file)
+    # LetsMesh has Cloudflare protection which prevents us from getting companion data (MeshMapper only shows repeaters)
+    # print("Syncing companions...")
+    # sync_companions(storage_file_path=companion_data_file)
 
 
 if __name__ == "__main__":
@@ -497,14 +485,7 @@ if __name__ == "__main__":
         help="Path to the data file to store repeater information.",
         required=True
     )
-    parser.add_argument(
-        "--companions-data-file",
-        type=str,
-        help="Path to the data file to store companion information.",
-        required=True
-    )
     args = parser.parse_args()
 
     repeater_data_file = args.repeaters_data_file
-    companion_data_file = args.companions_data_file
-    main(repeater_data_file=repeater_data_file, companion_data_file=companion_data_file)
+    main(repeater_data_file=repeater_data_file)

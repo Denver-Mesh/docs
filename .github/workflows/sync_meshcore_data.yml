@@ -32,12 +32,11 @@ jobs:
       - name: Run Python script to check for app git updates
         run: python MeshCore/nodes/sync_data.py
           --repeaters-data-file MeshCore/data/repeaters.json
-          --companions-data-file MeshCore/data/companions.json
 
       - name: Commit data files if modified
         uses: EndBug/add-and-commit@v9
         with:
-          add: 'MeshCore/data/repeaters.json MeshCore/data/companions.json'
+          add: 'MeshCore/data/repeaters.json'
           default_author: github_actions
           message: "MeshCore data updated [skip actions]" # https://github.blog/changelog/2021-02-08-github-actions-skip-pull-request-and-push-workflows-with-skip-ci/
           push: '--force'
