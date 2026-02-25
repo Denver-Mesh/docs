@@ -29,7 +29,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r MeshCore/nodes/requirements.txt
 
-      - name: Run Python script to check for app git updates
+      - name: Run Python script to check for MeshCore data updates
         run: python MeshCore/nodes/sync_data.py
           --repeaters-data-file MeshCore/nodes/repeaters.json
 
