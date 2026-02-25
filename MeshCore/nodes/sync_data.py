@@ -1,6 +1,7 @@
 import argparse
 import enum
 import json
+import requests
 import objectrest
 import os
 import time
@@ -199,6 +200,18 @@ def _get_letsmesh_nodes() -> list[LetsMeshNode]:
     :return: A list of LetsMeshNode objects representing the nodes in the Denver region.
     :rtype: list[LetsMeshNode]
     """
+    res = requests.get(url=LETSMESH_NODES_URL,
+                       headers={
+                           "Host": "api.letsmesh.net",
+                           "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:147.0) Gecko/20100101 Firefox/147.0",
+                           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                           "Accept-Language": "en-US,en;q=0.9",
+                           "Accept-Encoding": "gzip, deflate, br, zstd",
+                           "Connection": "keep-alive",
+                       }, timeout=10)
+    print(res)
+    print(res.text)
+
     return objectrest.get_object(url=LETSMESH_NODES_URL,  # type: ignore
                                  model=LetsMeshNode,
                                  extract_list=True,
@@ -291,7 +304,7 @@ def get_den_repeaters() -> list[Node]:
             longitude=repeater.lon,
             # This may take time, that's why this doesn't run often
             node_type=(NodeType.ROOM_SERVER
-                       if _meshmapper_node_is_room(node=repeater, letsmesh_nodes=letsmesh_nodes)
+                       if (_meshmapper_node_is_room(node=repeater, letsmesh_nodes=letsmesh_nodes) and letsmesh_nodes)
                        else NodeType.REPEATER),
             is_observer=False,  # Unknown
             contact=_build_contact_url(name=repeater.name, public_key=repeater.hex_id),
