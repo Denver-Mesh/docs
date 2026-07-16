@@ -1,0 +1,3 @@
+[submodule "coloradomesh_icons"]
+	path = src/assets/icons
+	url = git@github.com:Colorado-Mesh/icons.git
