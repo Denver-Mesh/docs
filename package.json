@@ -1,0 +1,26 @@
+{
+  "name": "coloradomesh-docs-website",
+  "version": "1.0.0",
+  "description": "Colorado Mesh",
+  "scripts": {
+    "start": "eleventy --serve --port 8081",
+    "build": "eleventy"
+  },
+  "keywords": [
+    "meshcore",
+    "meshtastic",
+    "reticulum",
+    "node",
+    "lora",
+    "mesh",
+    "radio",
+    "mesh-network",
+    "colorado"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.2"
+  }
+}

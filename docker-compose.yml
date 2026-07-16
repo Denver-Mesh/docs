@@ -1,0 +1,9 @@
+services:
+  docs:
+    container_name: "ColoradoMeshDocs"
+    image: femtopixel/eleventy:latest
+    ports:
+      - "8081:8080"
+    volumes:
+      - .:/app
+    command: ["--serve", "--port", "8080"]
