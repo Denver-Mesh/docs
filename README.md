@@ -1,1 +1,1 @@
-This repo contains documents and code related to the ColoradoMesh organization and mesh technologies in Colorado in general.
+This repo is deprecated. Most of this information has been ported to our wiki: https://wiki.coloradomesh.org
